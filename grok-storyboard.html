@@ -1353,16 +1353,7 @@
 
         <main class="main">
             <section class="concept-section">
-                <div class="section-label">Open Questions</div>
-
-                <div class="replit-notes">
-                    <h4>Notes to Resolve</h4>
-                    <ul>
-                        <li>Don't frankenstein it—if AI visuals, need a "why AI" that goes beyond budget replacement</li>
-                        <li>Current exec feels like it could be big budget live action—what makes AI essential?</li>
-                        <li>Risk: "Feels like an ad" — how do we subvert the formula?</li>
-                    </ul>
-                </div>
+                <div class="section-label">Creative Brief</div>
 
                 <div class="concept-grid">
                     <div class="concept-item">
@@ -1377,11 +1368,6 @@
                         <h3>The Unlock</h3>
                         <p>AI visuals = the mom's imagination, which is BOUNDLESS, IRRATIONAL, EMOTIONALLY EXAGGERATED. Not a Marvel movie—a mother's love visualized at impossible scale.</p>
                     </div>
-                </div>
-
-                <div class="idea-block">
-                    <h4>Why AI (Not Live Action)</h4>
-                    <p>The visuals aren't "what engineering looks like." They're "what a proud immigrant mom IMAGINES when her kid says 'I'm an engineer.'" Her son's face on Mount Rushmore. Him holding up a collapsing bridge with his bare hands. A 40-foot magazine cover. Every relative who doubted them watching from below. AI is the only medium that can capture the absurd, limitless scale of a parent's love.</p>
                 </div>
             </section>
 
@@ -2357,7 +2343,7 @@
             });
         });
 
-        // Handle image upload - stores as base64 in localStorage
+        // Handle image upload - uploads to Supabase Storage
         async function handleImageUpload(file, visual, frameId) {
             if (!file.type.startsWith('image/')) {
                 alert('Please select an image file');
@@ -2367,37 +2353,37 @@
             // Show loading state
             const visualContent = visual.querySelector('.visual-content');
             if (visualContent) {
-                visualContent.innerHTML = '<div class="visual-description">Loading...</div>';
+                visualContent.innerHTML = '<div class="visual-description">Uploading...</div>';
             }
 
-            // Read file as base64
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const base64Data = e.target.result;
+            // Upload to Supabase Storage
+            const publicUrl = await uploadImageToSupabase(file, frameId);
 
-                // Store in memory
-                imageUrls[frameId] = base64Data;
+            if (publicUrl) {
+                // Store URL in memory
+                imageUrls[frameId] = publicUrl;
 
-                // Save to localStorage
-                try {
-                    localStorage.setItem(`storyboard-img-${frameId}`, base64Data);
-                    showGlobalStatus('Image saved!');
-                } catch (err) {
-                    console.warn('localStorage full, image only in memory');
-                    showGlobalStatus('Image loaded (storage full)');
-                }
+                // Also set the URL input field
+                const input = document.querySelector(`.image-url-input[data-frame-id="${frameId}"]`);
+                if (input) input.value = publicUrl;
 
                 // Display the image
-                loadImageFromUrlDirect(frameId, base64Data);
-            };
-            reader.onerror = () => {
-                showGlobalStatus('Failed to load image');
-                if (visualContent) {
-                    visualContent.innerHTML = '<div class="visual-description">Failed to load. Try again.</div>';
-                    visualContent.style.opacity = '1';
-                }
-            };
-            reader.readAsDataURL(file);
+                loadImageFromUrlDirect(frameId, publicUrl);
+
+                // Auto-save to localStorage
+                saveToLocalStorage();
+            } else {
+                // Fallback to base64 if upload fails
+                showGlobalStatus('Upload failed, saving locally...');
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64Data = e.target.result;
+                    imageUrls[frameId] = base64Data;
+                    loadImageFromUrlDirect(frameId, base64Data);
+                    saveToLocalStorage();
+                };
+                reader.readAsDataURL(file);
+            }
         }
 
         // ==========================================
@@ -2468,6 +2454,10 @@
         // CLOUD STORAGE (npoint.io - free, no signup)
         // ==========================================
 
+        // SUPABASE CONFIG
+        const SUPABASE_URL = 'https://zdgntadusbzoqaprfogm.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZ250YWR1c2J6b3FhcHJmb2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4NDQ3NzEsImV4cCI6MjA4NDQyMDc3MX0.AcaZHJy7IG-SrTvHvJXaQlaVB7hHVGdJllSW_x1xSaQ';
+
         // Store image URLs in memory
         const imageUrls = {};
         let currentDocId = null;
@@ -2477,6 +2467,11 @@
         if (urlParams.get('id')) {
             currentDocId = urlParams.get('id');
             document.getElementById('cloudId').textContent = currentDocId;
+        }
+
+        // Generate a random ID for new documents
+        function generateId() {
+            return 'sb_' + Math.random().toString(36).substr(2, 9);
         }
 
         async function saveToCloud() {
@@ -2490,65 +2485,148 @@
             const data = getAllData();
 
             try {
-                const jsonStr = JSON.stringify(data);
-                const encoded = encodeURIComponent(jsonStr);
+                // Generate ID if we don't have one
+                if (!currentDocId) {
+                    currentDocId = generateId();
+                }
 
-                // Save to URL hash - works up to ~32KB
-                const newUrl = window.location.pathname + '#' + encoded;
-                window.history.replaceState(null, '', newUrl);
+                // Save to Supabase
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/storyboard_data`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Prefer': 'resolution=merge-duplicates'
+                    },
+                    body: JSON.stringify({
+                        id: currentDocId,
+                        data: data,
+                        updated_at: new Date().toISOString()
+                    })
+                });
 
-                document.getElementById('cloudId').textContent = 'Saved in URL';
-                cloudStatus.textContent = '✓ Saved! Copy URL to share';
-                showGlobalStatus('Saved! Copy this URL to share');
+                if (response.ok) {
+                    // Update URL with ID
+                    const newUrl = window.location.pathname + '?id=' + currentDocId;
+                    try {
+                        window.history.replaceState(null, '', newUrl);
+                    } catch (e) {
+                        // Ignore if in iframe
+                    }
+
+                    document.getElementById('cloudId').textContent = currentDocId;
+                    cloudStatus.textContent = '✓ Saved!';
+                    showGlobalStatus('Saved! Share URL: ?id=' + currentDocId);
+                } else {
+                    throw new Error('Save failed: ' + response.status);
+                }
             } catch (error) {
                 console.error('Save error:', error);
                 cloudStatus.textContent = '✗ Save failed';
-                showGlobalStatus('Save failed');
+                showGlobalStatus('Save failed - check console');
             }
 
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save to Cloud';
         }
 
-        function loadFromCloud() {
+        async function loadFromCloud() {
             const loadBtn = document.getElementById('loadBtn');
             const cloudStatus = document.getElementById('cloudStatus');
+
+            // Prompt for ID if we don't have one
+            if (!currentDocId) {
+                const id = prompt('Enter document ID to load:');
+                if (!id) return;
+                currentDocId = id;
+            }
 
             loadBtn.disabled = true;
             loadBtn.textContent = 'Loading...';
             cloudStatus.textContent = '';
 
             try {
-                const hash = window.location.hash;
-                if (hash && hash.length > 1) {
-                    const encoded = hash.slice(1); // Remove the #
-                    const jsonStr = decodeURIComponent(encoded);
-                    const data = JSON.parse(jsonStr);
-                    setAllData(data);
-                    document.getElementById('cloudId').textContent = 'Loaded from URL';
-                    cloudStatus.textContent = '✓ Loaded!';
-                    showGlobalStatus('Data loaded!');
+                const response = await fetch(
+                    `${SUPABASE_URL}/rest/v1/storyboard_data?id=eq.${currentDocId}&select=data`,
+                    {
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`
+                        }
+                    }
+                );
+
+                if (response.ok) {
+                    const results = await response.json();
+                    if (results.length > 0) {
+                        setAllData(results[0].data);
+                        document.getElementById('cloudId').textContent = currentDocId;
+                        cloudStatus.textContent = '✓ Loaded!';
+                        showGlobalStatus('Data loaded!');
+
+                        // Update URL
+                        try {
+                            const newUrl = window.location.pathname + '?id=' + currentDocId;
+                            window.history.replaceState(null, '', newUrl);
+                        } catch (e) {}
+                    } else {
+                        cloudStatus.textContent = 'No data found for this ID';
+                        currentDocId = null;
+                    }
                 } else {
-                    cloudStatus.textContent = 'No saved data in URL';
+                    throw new Error('Load failed');
                 }
             } catch (error) {
                 console.error('Load error:', error);
                 cloudStatus.textContent = '✗ Load failed';
                 showGlobalStatus('Load failed');
+                currentDocId = null;
             }
 
             loadBtn.disabled = false;
             loadBtn.textContent = 'Load';
         }
 
-        // Auto-load from hash on page load
-        function autoLoad() {
-            const hash = window.location.hash;
-            if (hash && hash.length > 1) {
-                setTimeout(() => loadFromCloud(), 500);
+        // Auto-load if ID in URL
+        if (currentDocId) {
+            setTimeout(() => loadFromCloud(), 500);
+        }
+
+        // Upload image to Supabase Storage
+        async function uploadImageToSupabase(file, frameId) {
+            showGlobalStatus('Uploading image...');
+
+            const fileName = `${frameId}_${Date.now()}_${file.name}`;
+
+            try {
+                const response = await fetch(
+                    `${SUPABASE_URL}/storage/v1/object/storyboard-images/${fileName}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'apikey': SUPABASE_KEY,
+                            'Authorization': `Bearer ${SUPABASE_KEY}`,
+                            'Content-Type': file.type
+                        },
+                        body: file
+                    }
+                );
+
+                if (response.ok) {
+                    // Get public URL
+                    const publicUrl = `${SUPABASE_URL}/storage/v1/object/public/storyboard-images/${fileName}`;
+                    showGlobalStatus('Image uploaded!');
+                    return publicUrl;
+                } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                showGlobalStatus('Upload failed');
+                return null;
             }
         }
-        autoLoad();
 
         function getAllData() {
             const data = {
@@ -2904,19 +2982,46 @@
             // Add blur event listener to save on edit
             document.querySelectorAll('[contenteditable="true"]').forEach(el => {
                 el.addEventListener('blur', () => {
-                    saveToUrl();
-                    if (currentDocId) {
-                        clearTimeout(autoSaveTimeout);
-                        autoSaveTimeout = setTimeout(() => saveToCloudQuiet(), 1000);
-                    }
+                    saveToLocalStorage();
+                    showGlobalStatus('Saved locally');
                 });
             });
         }
 
+        // Save all data to localStorage
+        function saveToLocalStorage() {
+            try {
+                const data = getAllData();
+                localStorage.setItem('storyboard-data', JSON.stringify(data));
+            } catch (e) {
+                console.warn('Could not save to localStorage', e);
+            }
+        }
+
+        // Load all data from localStorage
+        function loadFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('storyboard-data');
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    setAllData(data);
+                    return true;
+                }
+            } catch (e) {
+                console.warn('Could not load from localStorage', e);
+            }
+            return false;
+        }
+
         // Initialize editable text on load
-        window.addEventListener('DOMContentLoaded', initEditableText);
-        if (document.readyState !== 'loading') {
+        function initAll() {
             initEditableText();
+            loadFromLocalStorage();
+        }
+
+        window.addEventListener('DOMContentLoaded', initAll);
+        if (document.readyState !== 'loading') {
+            initAll();
         }
     </script>
 </body>
