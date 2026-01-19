@@ -2225,13 +2225,13 @@
     <!-- Cloud Save Bar -->
     <div class="cloud-bar">
         <div class="cloud-bar-left">
-            <span class="cloud-bar-label">Cloud Sync:</span>
-            <span class="cloud-bar-id" id="cloudId">Not saved yet</span>
+            <span class="cloud-bar-label">Cloud:</span>
+            <span class="cloud-bar-id" id="cloudId">Loading...</span>
             <span class="cloud-bar-status" id="cloudStatus"></span>
         </div>
         <div class="cloud-bar-right">
-            <button class="cloud-bar-btn secondary" onclick="loadFromCloud()" id="loadBtn">Load</button>
-            <button class="cloud-bar-btn" onclick="saveToCloud()" id="saveBtn">Save to Cloud</button>
+            <button class="cloud-bar-btn secondary" onclick="loadFromCloud()" id="loadBtn">Refresh</button>
+            <button class="cloud-bar-btn" onclick="saveToCloud()" id="saveBtn">Save</button>
         </div>
     </div>
 
@@ -2457,22 +2457,10 @@
         // SUPABASE CONFIG
         const SUPABASE_URL = 'https://zdgntadusbzoqaprfogm.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpkZ250YWR1c2J6b3FhcHJmb2dtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4NDQ3NzEsImV4cCI6MjA4NDQyMDc3MX0.AcaZHJy7IG-SrTvHvJXaQlaVB7hHVGdJllSW_x1xSaQ';
+        const DOC_ID = 'main'; // Single shared document for everyone
 
         // Store image URLs in memory
         const imageUrls = {};
-        let currentDocId = null;
-
-        // Check URL for doc ID on load
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('id')) {
-            currentDocId = urlParams.get('id');
-            document.getElementById('cloudId').textContent = currentDocId;
-        }
-
-        // Generate a random ID for new documents
-        function generateId() {
-            return 'sb_' + Math.random().toString(36).substr(2, 9);
-        }
 
         async function saveToCloud() {
             const saveBtn = document.getElementById('saveBtn');
@@ -2485,12 +2473,7 @@
             const data = getAllData();
 
             try {
-                // Generate ID if we don't have one
-                if (!currentDocId) {
-                    currentDocId = generateId();
-                }
-
-                // Save to Supabase
+                // Save to Supabase with fixed ID 'main'
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/storyboard_data`, {
                     method: 'POST',
                     headers: {
@@ -2500,24 +2483,16 @@
                         'Prefer': 'resolution=merge-duplicates'
                     },
                     body: JSON.stringify({
-                        id: currentDocId,
+                        id: DOC_ID,
                         data: data,
                         updated_at: new Date().toISOString()
                     })
                 });
 
                 if (response.ok) {
-                    // Update URL with ID
-                    const newUrl = window.location.pathname + '?id=' + currentDocId;
-                    try {
-                        window.history.replaceState(null, '', newUrl);
-                    } catch (e) {
-                        // Ignore if in iframe
-                    }
-
-                    document.getElementById('cloudId').textContent = currentDocId;
+                    document.getElementById('cloudId').textContent = '✓ Synced';
                     cloudStatus.textContent = '✓ Saved!';
-                    showGlobalStatus('Saved! Share URL: ?id=' + currentDocId);
+                    showGlobalStatus('Saved to cloud!');
                 } else {
                     throw new Error('Save failed: ' + response.status);
                 }
@@ -2528,19 +2503,12 @@
             }
 
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save to Cloud';
+            saveBtn.textContent = 'Save';
         }
 
         async function loadFromCloud() {
             const loadBtn = document.getElementById('loadBtn');
             const cloudStatus = document.getElementById('cloudStatus');
-
-            // Prompt for ID if we don't have one
-            if (!currentDocId) {
-                const id = prompt('Enter document ID to load:');
-                if (!id) return;
-                currentDocId = id;
-            }
 
             loadBtn.disabled = true;
             loadBtn.textContent = 'Loading...';
@@ -2548,7 +2516,7 @@
 
             try {
                 const response = await fetch(
-                    `${SUPABASE_URL}/rest/v1/storyboard_data?id=eq.${currentDocId}&select=data`,
+                    `${SUPABASE_URL}/rest/v1/storyboard_data?id=eq.${DOC_ID}&select=data`,
                     {
                         headers: {
                             'apikey': SUPABASE_KEY,
@@ -2561,18 +2529,11 @@
                     const results = await response.json();
                     if (results.length > 0) {
                         setAllData(results[0].data);
-                        document.getElementById('cloudId').textContent = currentDocId;
+                        document.getElementById('cloudId').textContent = '✓ Synced';
                         cloudStatus.textContent = '✓ Loaded!';
                         showGlobalStatus('Data loaded!');
-
-                        // Update URL
-                        try {
-                            const newUrl = window.location.pathname + '?id=' + currentDocId;
-                            window.history.replaceState(null, '', newUrl);
-                        } catch (e) {}
                     } else {
-                        cloudStatus.textContent = 'No data found for this ID';
-                        currentDocId = null;
+                        cloudStatus.textContent = 'No saved data yet';
                     }
                 } else {
                     throw new Error('Load failed');
@@ -2581,17 +2542,14 @@
                 console.error('Load error:', error);
                 cloudStatus.textContent = '✗ Load failed';
                 showGlobalStatus('Load failed');
-                currentDocId = null;
             }
 
             loadBtn.disabled = false;
             loadBtn.textContent = 'Load';
         }
 
-        // Auto-load if ID in URL
-        if (currentDocId) {
-            setTimeout(() => loadFromCloud(), 500);
-        }
+        // Auto-load from cloud on page load
+        setTimeout(() => loadFromCloud(), 500);
 
         // Upload image to Supabase Storage
         async function uploadImageToSupabase(file, frameId) {
