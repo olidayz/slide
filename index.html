@@ -1,0 +1,1867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spec Campaigns — Storyboards</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --text-primary: #ffffff;
+            --text-secondary: #888;
+            --accent: #FF6B00;
+            --accent-bright: #FF8C33;
+            --danger: #FF6B00;
+            --frame-bg: #111111;
+            --border: #2a2a2a;
+            --comment-bg: #1a1a1a;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Tab Navigation */
+        .tab-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 200;
+            background: var(--bg-dark);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            padding: 0 48px;
+        }
+
+        .tab-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 20px 32px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: linear-gradient(180deg, rgba(10,10,10,1) 0%, rgba(10,10,10,0.95) 70%, rgba(10,10,10,0) 100%);
+            padding: 24px 48px 48px;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .project-info h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--accent);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .project-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            letter-spacing: -1px;
+        }
+
+        .meta {
+            text-align: right;
+            font-size: 11px;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            height: 2px;
+            background: var(--accent);
+            z-index: 101;
+            transition: width 0.3s ease;
+        }
+
+        /* Main content */
+        .main {
+            padding: 220px 48px 100px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Concept section */
+        .concept-section {
+            margin-bottom: 80px;
+            padding-bottom: 60px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 24px;
+        }
+
+        .concept-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 48px;
+        }
+
+        .concept-item h3 {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .concept-item p {
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+
+        /* Storyboard */
+        .storyboard-section {
+            margin-bottom: 80px;
+        }
+
+        .frame-counter {
+            position: fixed;
+            right: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .frame-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--border);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .frame-dot.active {
+            background: var(--accent);
+            transform: scale(1.5);
+        }
+
+        .frame-dot:hover {
+            background: var(--text-secondary);
+        }
+
+        /* Frames */
+        .frames-container {
+            display: flex;
+            flex-direction: column;
+            gap: 120px;
+        }
+
+        .frame {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 60px;
+            align-items: start;
+            opacity: 0;
+            transform: translateY(40px);
+            animation: fadeInUp 0.8s ease forwards;
+        }
+
+        .frame:nth-child(1) { animation-delay: 0.1s; }
+        .frame:nth-child(2) { animation-delay: 0.15s; }
+        .frame:nth-child(3) { animation-delay: 0.2s; }
+        .frame:nth-child(4) { animation-delay: 0.25s; }
+        .frame:nth-child(5) { animation-delay: 0.3s; }
+        .frame:nth-child(6) { animation-delay: 0.35s; }
+        .frame:nth-child(7) { animation-delay: 0.4s; }
+        .frame:nth-child(8) { animation-delay: 0.45s; }
+        .frame:nth-child(9) { animation-delay: 0.5s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .frame-visual {
+            aspect-ratio: 16/9;
+            background: var(--frame-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        .frame-visual:hover {
+            border-color: var(--accent);
+        }
+
+        .frame-visual.dragover {
+            border-color: var(--accent);
+            background: rgba(255, 107, 0, 0.1);
+        }
+
+        .frame-visual::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.02) 50%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .frame-number {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: rgba(0,0,0,0.8);
+            padding: 4px 10px;
+            border-radius: 2px;
+            z-index: 10;
+        }
+
+        .frame-timing {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--accent);
+            background: rgba(0,0,0,0.8);
+            padding: 4px 10px;
+            border-radius: 2px;
+            z-index: 10;
+        }
+
+        /* Visual placeholder content */
+        .visual-content {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+
+        .visual-description {
+            font-family: 'Instrument Serif', serif;
+            font-size: 20px;
+            font-style: italic;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* Uploaded image */
+        .frame-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 5;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 16px;
+            right: 100px;
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            color: var(--text-primary);
+            background: rgba(255, 59, 59, 0.8);
+            padding: 4px 10px;
+            border-radius: 2px;
+            z-index: 15;
+            cursor: pointer;
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: none;
+        }
+
+        .frame-visual:hover .remove-image {
+            display: block;
+        }
+
+        .upload-hint {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: var(--text-secondary);
+            background: rgba(0,0,0,0.6);
+            padding: 4px 12px;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+        }
+
+        .frame-visual:hover .upload-hint {
+            opacity: 1;
+        }
+
+        /* Hidden file input */
+        .frame-file-input {
+            display: none;
+        }
+
+        /* Chaos frames get orange tint */
+        .frame.chaos .frame-visual {
+            border-color: rgba(255, 107, 0, 0.4);
+        }
+
+        .frame.chaos .frame-visual::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 107, 0, 0.08) 100%);
+            pointer-events: none;
+        }
+
+        /* Grok frames get white/bright tint */
+        .frame.grok .frame-visual {
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .frame.grok .frame-visual::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        /* Frame details */
+        .frame-details {
+            padding-top: 20px;
+        }
+
+        .frame-type {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 2px;
+        }
+
+        .frame.chaos .frame-type {
+            color: var(--accent);
+            background: rgba(255, 107, 0, 0.15);
+        }
+
+        .frame.transition .frame-type {
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .frame.grok .frame-type {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .frame.endcard .frame-type {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .frame-title {
+            font-family: 'Space Mono', monospace;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            color: var(--text-primary);
+        }
+
+        .frame-description {
+            font-size: 13px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .frame-notes {
+            padding: 16px;
+            background: rgba(255, 107, 0, 0.03);
+            border-left: 2px solid var(--accent);
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        .frame-notes strong {
+            font-family: 'Space Mono', monospace;
+            color: var(--accent);
+            display: block;
+            margin-bottom: 8px;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .frame-notes ul {
+            list-style: none;
+            color: var(--text-secondary);
+        }
+
+        .frame-notes li {
+            padding-left: 16px;
+            position: relative;
+            margin-bottom: 6px;
+        }
+
+        .frame-notes li::before {
+            content: '—';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+
+        /* CD Comments Section */
+        .cd-comments {
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--comment-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .cd-comments-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .cd-comments-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #4ECDC4;
+        }
+
+        .cd-comments-status {
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            color: var(--text-secondary);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .cd-comments-status.visible {
+            opacity: 1;
+        }
+
+        .cd-comments-textarea {
+            width: 100%;
+            min-height: 80px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 12px;
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            color: var(--text-primary);
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .cd-comments-textarea::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .cd-comments-textarea:focus {
+            outline: none;
+            border-color: #4ECDC4;
+        }
+
+        /* End card special styling */
+        .frame.endcard .frame-visual {
+            background: var(--bg-dark);
+            border-color: var(--text-primary);
+        }
+
+        .endcard-content {
+            text-align: center;
+        }
+
+        .endcard-line {
+            font-family: 'Space Mono', monospace;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .endcard-grok {
+            font-family: 'Space Mono', monospace;
+            font-size: 18px;
+            color: var(--accent);
+            letter-spacing: 2px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 120px;
+            padding-top: 40px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-left {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .footer-right {
+            display: flex;
+            gap: 24px;
+        }
+
+        .footer-link {
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: var(--accent);
+        }
+
+        /* Clear data button */
+        .clear-data-btn {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .clear-data-btn:hover {
+            border-color: #ff3b3b;
+            color: #ff3b3b;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .tab-nav {
+                padding: 0 24px;
+            }
+
+            .tab-btn {
+                padding: 16px 20px;
+                font-size: 10px;
+            }
+
+            .header {
+                padding: 20px 24px 40px;
+            }
+
+            .main {
+                padding: 200px 24px 60px;
+            }
+
+            .concept-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .frame {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .frame-counter {
+                display: none;
+            }
+
+            .frame-title {
+                font-size: 20px;
+            }
+        }
+
+        /* Glitch effect for chaos frames */
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+
+        .frame.chaos:hover .visual-description {
+            animation: glitch 0.3s ease infinite;
+        }
+
+        /* Scan line effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1000;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.03),
+                rgba(0, 0, 0, 0.03) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            opacity: 0.5;
+        }
+
+        /* WIP Badge */
+        .wip-badge {
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: 9px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            background: rgba(255, 107, 0, 0.2);
+            color: var(--accent);
+            border-radius: 2px;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+
+        /* Replit specific */
+        .replit-notes {
+            background: rgba(255, 107, 0, 0.05);
+            border: 1px solid rgba(255, 107, 0, 0.2);
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 40px;
+        }
+
+        .replit-notes h4 {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 16px;
+        }
+
+        .replit-notes ul {
+            list-style: none;
+        }
+
+        .replit-notes li {
+            font-size: 13px;
+            line-height: 1.7;
+            color: var(--text-secondary);
+            padding-left: 20px;
+            position: relative;
+            margin-bottom: 8px;
+        }
+
+        .replit-notes li::before {
+            content: '!';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        .idea-block {
+            background: var(--frame-bg);
+            border-left: 3px solid var(--accent);
+            padding: 24px;
+            margin: 24px 0;
+        }
+
+        .idea-block h4 {
+            font-family: 'Space Mono', monospace;
+            font-size: 12px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+        }
+
+        .idea-block p {
+            font-family: 'Instrument Serif', serif;
+            font-size: 18px;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+
+    <!-- Tab Navigation -->
+    <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="grok">Grok</button>
+        <button class="tab-btn" data-tab="replit">Replit <span class="wip-badge">WIP</span></button>
+    </nav>
+
+    <!-- GROK TAB -->
+    <div class="tab-content active" id="grok">
+        <div class="progress-bar" id="progressBar"></div>
+
+        <header class="header">
+            <div class="header-content">
+                <div class="project-info">
+                    <h1>Spec Campaign Storyboard</h1>
+                    <div class="project-title">911 FOR THE TRUTH</div>
+                </div>
+                <div class="meta">
+                    CLIENT: X / Grok<br>
+                    FORMAT: :45 Digital/Social<br>
+                    VERSION: Draft 1.0<br>
+                    DATE: January 2026
+                </div>
+            </div>
+        </header>
+
+        <nav class="frame-counter" id="frameCounter"></nav>
+
+        <main class="main">
+            <section class="concept-section">
+                <div class="section-label">Creative Brief</div>
+                <div class="concept-grid">
+                    <div class="concept-item">
+                        <h3>Insight</h3>
+                        <p>AI broke reality. Deepfakes, synthetic media, and AI-generated content have made it impossible to trust what we see. Only Grok offers real-time verification—people on X @grok to determine if something is real or fake.</p>
+                    </div>
+                    <div class="concept-item">
+                        <h3>Idea</h3>
+                        <p>Grok is 911 for the truth. In a world where your eyes lie, there's one emergency line to call. When reality itself is under attack, Grok is the first responder.</p>
+                    </div>
+                    <div class="concept-item">
+                        <h3>Tone</h3>
+                        <p>Overwhelming chaos → Paralysis → Relief. The ad should feel like drowning in information, then finally gasping for air. Urgent, cinematic, ultimately empowering.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="storyboard-section">
+                <div class="section-label">Storyboard — :45</div>
+
+                <div class="frames-container">
+
+                    <!-- FRAME 1: CHAOS 1 - HELICOPTER CRASH -->
+                    <div class="frame chaos" data-frame="1" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-1">
+                            <span class="frame-number">01</span>
+                            <span class="frame-timing">0:00 – 0:04</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    Phone footage: Helicopter spiraling down over a city skyline.<br><br>
+                                    Impact. Fireball. Screaming. "Holy shit holy shit holy shit."
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">AI Chaos</span>
+                            <h2 class="frame-title">THE CRASH</h2>
+                            <p class="frame-description">We open cold. No context. Vertical phone footage—someone filming the sky, then chaos. A helicopter loses control, spirals, impacts. The footage is shaky, raw, visceral. The person filming is panicking. Comments flooding: "Is this real??" / "Where is this??" / "Oh my god." It looks completely authentic.</p>
+                            <div class="frame-notes">
+                                <strong>Production Notes</strong>
+                                <ul>
+                                    <li>Phone footage aesthetic—vertical, shaky, reactive</li>
+                                    <li>Generate with Sora/Runway—hyper-realistic physics</li>
+                                    <li>Include social platform UI (comments, reactions)</li>
+                                    <li>Sound: Wind, rotors failing, impact, screaming</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-1" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME 2: CHAOS 2 - TBD -->
+                    <div class="frame chaos" data-frame="2" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-2">
+                            <span class="frame-number">02</span>
+                            <span class="frame-timing">0:04 – 0:08</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    [SCENE TBD]<br><br>
+                                    Escalation from local → cultural/celebrity
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">AI Chaos</span>
+                            <h2 class="frame-title">[TBD — ESCALATION 1]</h2>
+                            <p class="frame-description">The scroll continues. Next piece of content escalates in scale or emotional register. Could be: celebrity death announcement, political scandal, cultural moment. The viewer barely has time to process the helicopter before being hit with this.</p>
+                            <div class="frame-notes">
+                                <strong>Production Notes</strong>
+                                <ul>
+                                    <li>Different visual format than Frame 1 (variety)</li>
+                                    <li>Quick cut—2-4 seconds max</li>
+                                    <li>Each scene should feel like a different "type" of content</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-2" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME 3: CHAOS 3 - TBD -->
+                    <div class="frame chaos" data-frame="3" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-3">
+                            <span class="frame-number">03</span>
+                            <span class="frame-timing">0:08 – 0:12</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    [SCENE TBD]<br><br>
+                                    Escalation → political / national scale
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">AI Chaos</span>
+                            <h2 class="frame-title">[TBD — ESCALATION 2]</h2>
+                            <p class="frame-description">Scale increases. This should feel like it affects everyone—political, national, systemic. War declaration, government collapse, major policy announcement. The "this changes everything" moment.</p>
+                            <div class="frame-notes">
+                                <strong>Production Notes</strong>
+                                <ul>
+                                    <li>News broadcast aesthetic possible here</li>
+                                    <li>Chyrons, lower-thirds, urgency</li>
+                                    <li>Sound: News music, cross-talk, breaking alerts</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-3" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME 4: CHAOS 4 - TBD -->
+                    <div class="frame chaos" data-frame="4" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-4">
+                            <span class="frame-number">04</span>
+                            <span class="frame-timing">0:12 – 0:16</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    [SCENE TBD]<br><br>
+                                    Escalation → global catastrophe
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">AI Chaos</span>
+                            <h2 class="frame-title">[TBD — ESCALATION 3]</h2>
+                            <p class="frame-description">Global scale. Natural disaster, environmental catastrophe, extinction-level event. The kind of footage that makes you call your family. Tsunami, supervolcano, asteroid. "We're all going to die" energy.</p>
+                            <div class="frame-notes">
+                                <strong>Production Notes</strong>
+                                <ul>
+                                    <li>Massive scale—impossible shots only AI can create</li>
+                                    <li>Multiple "sources" showing same event</li>
+                                    <li>Sound: Rumbling, alarms, chaos</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-4" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME 5: CHAOS 5 - TBD -->
+                    <div class="frame chaos" data-frame="5" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-5">
+                            <span class="frame-number">05</span>
+                            <span class="frame-timing">0:16 – 0:20</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    [SCENE TBD]<br><br>
+                                    Escalation → existential / cosmic
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">AI Chaos</span>
+                            <h2 class="frame-title">[TBD — ESCALATION 4]</h2>
+                            <p class="frame-description">Beyond Earth. Alien contact, cosmic event, reality-breaking. This is where we leave the realm of "possible" and enter "impossible but looks real." The apex of the chaos—nothing is off limits now.</p>
+                            <div class="frame-notes">
+                                <strong>Production Notes</strong>
+                                <ul>
+                                    <li>Push the visuals—this should feel unreal but LOOK real</li>
+                                    <li>Multiple angles, "citizen journalism"</li>
+                                    <li>Sound: Otherworldly, dissonant, terrifying</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-5" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME 6: THE ASK -->
+                    <div class="frame grok" data-frame="6" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-6">
+                            <span class="frame-number">06</span>
+                            <span class="frame-timing">0:20 – 0:28</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    Flood of @grok prompts. All languages. All phrasings.<br><br>
+                                    "@grok is this real?" "@grok wtf" "@grok これは本物？"<br>
+                                    "@grok fact check" "@grok c'est vrai?" "@grok help"
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">The Ask</span>
+                            <h2 class="frame-title">THE GLOBAL CHORUS</h2>
+                            <p class="frame-description">Instead of one person asking—EVERYONE is asking. A rapid-fire montage of @grok prompts flooding the screen. Different languages, different phrasings, different levels of panic. The world, collectively, reaching for the same lifeline.</p>
+                            <div class="frame-notes">
+                                <strong>Prompt Examples</strong>
+                                <ul>
+                                    <li>@grok is this real?</li>
+                                    <li>@grok wtf is this</li>
+                                    <li>@grok fact check this</li>
+                                    <li>@grok これは本物？</li>
+                                    <li>@grok es esto real?</li>
+                                    <li>@grok please tell me this is fake</li>
+                                    <li>@grok 这是真的吗</li>
+                                    <li>@grok c'est vrai ça?</li>
+                                    <li>@grok is this AI</li>
+                                    <li>@grok real or nah</li>
+                                    <li>@grok بالله هذا حقيقي؟</li>
+                                    <li>@grok verify</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-6" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME 7: THE ANSWER -->
+                    <div class="frame grok" data-frame="7" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-7">
+                            <span class="frame-number">07</span>
+                            <span class="frame-timing">0:28 – 0:38</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    Grok responds. Clean. Definitive.<br><br>
+                                    "This video was AI-generated. Here's why..."<br>
+                                    Clarity cuts through the noise.
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">Resolution</span>
+                            <h2 class="frame-title">THE ANSWER</h2>
+                            <p class="frame-description">After the chaos of prompts—Grok responds. One clear, authoritative answer cuts through. The visual noise settles. The sound design shifts from chaos to calm. Truth arrived. The emergency was answered.</p>
+                            <div class="frame-notes">
+                                <strong>Production Notes</strong>
+                                <ul>
+                                    <li>Show actual Grok interface responding</li>
+                                    <li>Clean typography, clear hierarchy</li>
+                                    <li>Sound: Notification chime, then calm ambient</li>
+                                    <li>The relief should be palpable</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-7" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FRAME 8: END CARD -->
+                    <div class="frame endcard" data-frame="8" data-tab="grok">
+                        <div class="frame-visual" data-frame-id="grok-8">
+                            <span class="frame-number">08</span>
+                            <span class="frame-timing">0:38 – 0:45</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="endcard-content">
+                                    <div class="endcard-line">911 for the truth.</div>
+                                    <div class="endcard-grok">@grok</div>
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">End Card</span>
+                            <h2 class="frame-title">THE LINE</h2>
+                            <p class="frame-description">Black screen. The line lands: "911 for the truth." Below it: @grok. The X logo appears subtly. The message is clear, memorable, actionable. When reality is under attack, there's one number to call.</p>
+                            <div class="frame-notes">
+                                <strong>Production Notes</strong>
+                                <ul>
+                                    <li>High contrast: white text on black</li>
+                                    <li>Hold for 5+ seconds—let it breathe</li>
+                                    <li>X logo subtle, secondary</li>
+                                    <li>Sound: Single tone, then silence</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="grok-8" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <footer class="footer">
+                <div class="footer-left">
+                    GROK: 911 FOR THE TRUTH — Storyboard v1.0<br>
+                    Prepared for Creative Review
+                </div>
+                <div class="footer-right">
+                    <button class="clear-data-btn" onclick="clearAllData('grok')">Clear All Data</button>
+                    <span class="footer-link">Total Runtime: :45</span>
+                    <span class="footer-link">8 Frames</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- REPLIT TAB -->
+    <div class="tab-content" id="replit">
+        <header class="header">
+            <div class="header-content">
+                <div class="project-info">
+                    <h1>Spec Campaign Storyboard</h1>
+                    <div class="project-title">MAKE YOUR PARENTS PROUD</div>
+                </div>
+                <div class="meta">
+                    CLIENT: Replit<br>
+                    FORMAT: :30-:60 Digital<br>
+                    VERSION: Brief Development<br>
+                    DATE: January 2026
+                </div>
+            </div>
+        </header>
+
+        <main class="main">
+            <section class="concept-section">
+                <div class="section-label">Open Questions</div>
+
+                <div class="replit-notes">
+                    <h4>Notes to Resolve</h4>
+                    <ul>
+                        <li>Don't frankenstein it—if AI visuals, need a "why AI" that goes beyond budget replacement</li>
+                        <li>Current exec feels like it could be big budget live action—what makes AI essential?</li>
+                        <li>Risk: "Feels like an ad" — how do we subvert the formula?</li>
+                    </ul>
+                </div>
+
+                <div class="concept-grid">
+                    <div class="concept-item">
+                        <h3>Insight</h3>
+                        <p>Every parent wants their child to become an engineer. Especially immigrant parents. It's the dream job—stable, prestigious, world-building.</p>
+                    </div>
+                    <div class="concept-item">
+                        <h3>Idea</h3>
+                        <p>Everyone's an engineer now. Replit made it possible. The barrier is gone.</p>
+                    </div>
+                    <div class="concept-item">
+                        <h3>The Unlock</h3>
+                        <p>AI visuals = the mom's imagination, which is BOUNDLESS, IRRATIONAL, EMOTIONALLY EXAGGERATED. Not a Marvel movie—a mother's love visualized at impossible scale.</p>
+                    </div>
+                </div>
+
+                <div class="idea-block">
+                    <h4>Why AI (Not Live Action)</h4>
+                    <p>The visuals aren't "what engineering looks like." They're "what a proud immigrant mom IMAGINES when her kid says 'I'm an engineer.'" Her son's face on Mount Rushmore. Him holding up a collapsing bridge with his bare hands. A 40-foot magazine cover. Every relative who doubted them watching from below. AI is the only medium that can capture the absurd, limitless scale of a parent's love.</p>
+                </div>
+            </section>
+
+            <section class="storyboard-section">
+                <div class="section-label">Original Exec (Reference)</div>
+
+                <div class="frames-container">
+                    <div class="frame" data-frame="1" data-tab="replit">
+                        <div class="frame-visual" data-frame-id="replit-1">
+                            <span class="frame-number">REF</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    Son: "Mom... I'm an engineer now."<br><br>
+                                    Video call. Simple. Intimate.
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">Opening</span>
+                            <h2 class="frame-title">THE CALL</h2>
+                            <p class="frame-description">Son on video call with mom. Simple setup. He says the words she's been waiting her whole life to hear: "Mom... I'm an engineer now."</p>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="replit-1" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="frame" data-frame="2" data-tab="replit">
+                        <div class="frame-visual" data-frame-id="replit-2">
+                            <span class="frame-number">REF</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    Mom's imagination explodes:<br><br>
+                                    Son on Mount Rushmore. Holding up bridges. Nobel Prize. Magazine covers. Golden escalator ascending past doubters.
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">Fantasy</span>
+                            <h2 class="frame-title">MOM'S IMAGINATION</h2>
+                            <p class="frame-description">This is where AI shines. Not realistic engineering—EMOTIONAL engineering. Her son carved into mountains. Receiving every award simultaneously. Every relative who doubted watching from below. The absurd, boundless scale of a mother's pride.</p>
+                            <div class="frame-notes">
+                                <strong>Possible Visuals</strong>
+                                <ul>
+                                    <li>Son's face on Mount Rushmore next to the greats</li>
+                                    <li>Holding up a collapsing bridge with bare hands</li>
+                                    <li>Statue in the town square back home</li>
+                                    <li>40-foot magazine cover she shows to neighbors</li>
+                                    <li>Nobel Prize, Oscar, World Cup trophy—simultaneously</li>
+                                    <li>Golden escalator ascending past every doubter</li>
+                                </ul>
+                            </div>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="replit-2" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="frame" data-frame="3" data-tab="replit">
+                        <div class="frame-visual" data-frame-id="replit-3">
+                            <span class="frame-number">REF</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    Back to reality: Kid at laptop.<br><br>
+                                    "Build me an app that turns my dog's barks into opera. Make no mistakes."
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">Reality</span>
+                            <h2 class="frame-title">THE PROMPT</h2>
+                            <p class="frame-description">Snap back. The kid is just... at a laptop. Types a silly prompt into Replit: "Build me an app that turns my dog's barks into opera. Make no mistakes." The juxtaposition is the joke—and the truth.</p>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="replit-3" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="frame" data-frame="4" data-tab="replit">
+                        <div class="frame-visual" data-frame-id="replit-4">
+                            <span class="frame-number">REF</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="visual-description">
+                                    Mom on video call.<br><br>
+                                    Tears streaming. Hand over heart. Nodding.
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">Payoff</span>
+                            <h2 class="frame-title">THE REACTION</h2>
+                            <p class="frame-description">Cut back to mom. She doesn't know what he actually does. She doesn't need to. Tears streaming. Hand over heart. Her baby is an engineer. That's all that matters.</p>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="replit-4" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="frame endcard" data-frame="5" data-tab="replit">
+                        <div class="frame-visual" data-frame-id="replit-5">
+                            <span class="frame-number">REF</span>
+                            <button class="remove-image">Remove</button>
+                            <div class="visual-content">
+                                <div class="endcard-content">
+                                    <div class="endcard-line">Make your parents proud.</div>
+                                    <div class="endcard-grok">Replit</div>
+                                </div>
+                            </div>
+                            <span class="upload-hint">Click or drag image to upload</span>
+                            <input type="file" class="frame-file-input" accept="image/*">
+                        </div>
+                        <div class="frame-details">
+                            <span class="frame-type">End Card</span>
+                            <h2 class="frame-title">THE LINE</h2>
+                            <p class="frame-description">"Make your parents proud." Replit logo. Simple. Emotional. Universal.</p>
+                            <div class="cd-comments">
+                                <div class="cd-comments-header">
+                                    <span class="cd-comments-label">CD Comments</span>
+                                    <span class="cd-comments-status">Saved</span>
+                                </div>
+                                <textarea class="cd-comments-textarea" data-comment-id="replit-5" placeholder="Add feedback, notes, or questions..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <footer class="footer">
+                <div class="footer-left">
+                    REPLIT: MAKE YOUR PARENTS PROUD — Brief Development<br>
+                    Work in Progress
+                </div>
+                <div class="footer-right">
+                    <button class="clear-data-btn" onclick="clearAllData('replit')">Clear All Data</button>
+                    <span class="footer-link">Status: Refining</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <script>
+        // Tab switching
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+
+                btn.classList.add('active');
+                document.getElementById(tabId).classList.add('active');
+
+                window.scrollTo(0, 0);
+            });
+        });
+
+        // Progress bar (Grok tab only)
+        const progressBar = document.getElementById('progressBar');
+        window.addEventListener('scroll', () => {
+            if (document.getElementById('grok').classList.contains('active')) {
+                const scrollTop = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = (scrollTop / docHeight) * 100;
+                progressBar.style.width = progress + '%';
+            }
+        });
+
+        // Frame counter dots (Grok tab)
+        const frameCounter = document.getElementById('frameCounter');
+        const grokFrames = document.querySelectorAll('#grok .frame');
+
+        grokFrames.forEach((frame, index) => {
+            const dot = document.createElement('div');
+            dot.className = 'frame-dot';
+            dot.addEventListener('click', () => {
+                frame.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+            frameCounter.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.frame-dot');
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const index = Array.from(grokFrames).indexOf(entry.target);
+                    dots.forEach((dot, i) => {
+                        dot.classList.toggle('active', i === index);
+                    });
+                }
+            });
+        }, { threshold: 0.5 });
+
+        grokFrames.forEach(frame => observer.observe(frame));
+
+        // ==========================================
+        // IMAGE UPLOAD FUNCTIONALITY
+        // ==========================================
+
+        const frameVisuals = document.querySelectorAll('.frame-visual');
+
+        frameVisuals.forEach(visual => {
+            const fileInput = visual.querySelector('.frame-file-input');
+            const frameId = visual.dataset.frameId;
+
+            // Click to upload
+            visual.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-image')) return;
+                fileInput.click();
+            });
+
+            // File input change
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files && e.target.files[0]) {
+                    handleImageUpload(e.target.files[0], visual, frameId);
+                }
+            });
+
+            // Drag and drop
+            visual.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                visual.classList.add('dragover');
+            });
+
+            visual.addEventListener('dragleave', () => {
+                visual.classList.remove('dragover');
+            });
+
+            visual.addEventListener('drop', (e) => {
+                e.preventDefault();
+                visual.classList.remove('dragover');
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleImageUpload(e.dataTransfer.files[0], visual, frameId);
+                }
+            });
+
+            // Remove image button
+            const removeBtn = visual.querySelector('.remove-image');
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clearImage(frameId);
+            });
+
+            // Load saved image
+            loadSavedImage(visual, frameId);
+        });
+
+        function handleImageUpload(file, visual, frameId) {
+            if (!file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const imageData = e.target.result;
+                displayImage(visual, imageData);
+                saveImage(frameId, imageData);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function displayImage(visual, imageData) {
+            // Remove existing image if any
+            const existingImg = visual.querySelector('.frame-image');
+            if (existingImg) existingImg.remove();
+
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.className = 'frame-image';
+            visual.appendChild(img);
+
+            // Hide the placeholder
+            const visualContent = visual.querySelector('.visual-content');
+            if (visualContent) visualContent.style.opacity = '0';
+        }
+
+        function loadSavedImage(visual, frameId) {
+            // Images are now loaded from URL hash, not localStorage
+            // This is called on initial page load before URL data is loaded
+        }
+
+        // ==========================================
+        // CD COMMENTS FUNCTIONALITY
+        // ==========================================
+
+        const commentTextareas = document.querySelectorAll('.cd-comments-textarea');
+
+        commentTextareas.forEach(textarea => {
+            const commentId = textarea.dataset.commentId;
+            const statusEl = textarea.parentElement.querySelector('.cd-comments-status');
+
+            // Load saved comment
+            const savedComment = localStorage.getItem(`storyboard-comment-${commentId}`);
+            if (savedComment) {
+                textarea.value = savedComment;
+            }
+
+            // Save on input with debounce
+            let saveTimeout;
+            textarea.addEventListener('input', () => {
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    localStorage.setItem(`storyboard-comment-${commentId}`, textarea.value);
+                    showSaveStatus(statusEl);
+                }, 500);
+            });
+
+            // Save on blur immediately
+            textarea.addEventListener('blur', () => {
+                localStorage.setItem(`storyboard-comment-${commentId}`, textarea.value);
+                showSaveStatus(statusEl);
+            });
+        });
+
+        function showSaveStatus(statusEl) {
+            statusEl.classList.add('visible');
+            setTimeout(() => {
+                statusEl.classList.remove('visible');
+            }, 2000);
+        }
+
+        // ==========================================
+        // CLEAR ALL DATA
+        // ==========================================
+
+        function clearAllData(tab) {
+            if (!confirm(`Clear all images and comments for ${tab.toUpperCase()}? This cannot be undone.`)) return;
+
+            const frames = document.querySelectorAll(`[data-tab="${tab}"] .frame-visual`);
+            frames.forEach(visual => {
+                const frameId = visual.dataset.frameId;
+                clearImage(frameId);
+            });
+
+            const comments = document.querySelectorAll(`[data-tab="${tab}"] .cd-comments-textarea`);
+            comments.forEach(textarea => {
+                const commentId = textarea.dataset.commentId;
+                textarea.value = '';
+                localStorage.removeItem(`storyboard-comment-${commentId}`);
+            });
+
+            // Also update URL
+            saveToUrl();
+        }
+
+        // ==========================================
+        // CLOUD STORAGE (JSONBin.io)
+        // ==========================================
+
+        // JSONBin config - you'll get these after creating a bin
+        const JSONBIN_BIN_ID = null; // Will be set after first save
+        const JSONBIN_API_KEY = '$2a$10$xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'; // Replace with your API key
+
+        // Simple cloud storage using JSONBin.io (free, no signup required for public bins)
+        // Alternative: Using URL hash to store data (works without any backend!)
+
+        // ==========================================
+        // URL-BASED PERSISTENCE (No backend needed!)
+        // ==========================================
+
+        // This approach encodes all data in the URL hash
+        // When you share the link, all data travels with it
+
+        // Store image URLs in memory (no visible input fields)
+        const imageUrls = {};
+
+        function getAllData() {
+            const data = {
+                images: {},
+                comments: {}
+            };
+
+            // Collect all image URLs from memory
+            Object.entries(imageUrls).forEach(([id, url]) => {
+                if (url) {
+                    data.images[id] = url;
+                }
+            });
+
+            // Collect all comments
+            document.querySelectorAll('.cd-comments-textarea').forEach(textarea => {
+                const id = textarea.dataset.commentId;
+                if (textarea.value.trim()) {
+                    data.comments[id] = textarea.value.trim();
+                }
+            });
+
+            return data;
+        }
+
+        function setAllData(data) {
+            if (!data) return;
+
+            // Set image URLs and load images
+            if (data.images) {
+                Object.entries(data.images).forEach(([id, url]) => {
+                    imageUrls[id] = url;
+                    loadImageFromUrlDirect(id, url);
+                });
+            }
+
+            // Set comments
+            if (data.comments) {
+                Object.entries(data.comments).forEach(([id, comment]) => {
+                    const textarea = document.querySelector(`.cd-comments-textarea[data-comment-id="${id}"]`);
+                    if (textarea) {
+                        textarea.value = comment;
+                    }
+                });
+            }
+        }
+
+        function saveToUrl() {
+            const data = getAllData();
+            const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+            const newUrl = window.location.pathname + '#' + encoded;
+            window.history.replaceState(null, '', newUrl);
+            showGlobalStatus('Data saved to URL - share this link!');
+        }
+
+        function loadFromUrl() {
+            const hash = window.location.hash.slice(1);
+            if (hash) {
+                try {
+                    const decoded = JSON.parse(decodeURIComponent(atob(hash)));
+                    setAllData(decoded);
+                    showGlobalStatus('Data loaded from URL');
+                } catch (e) {
+                    console.warn('Could not load data from URL:', e);
+                }
+            }
+        }
+
+        function showGlobalStatus(message) {
+            // Create or update status indicator
+            let status = document.getElementById('globalStatus');
+            if (!status) {
+                status = document.createElement('div');
+                status.id = 'globalStatus';
+                status.style.cssText = `
+                    position: fixed;
+                    bottom: 24px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: var(--accent);
+                    color: var(--bg-dark);
+                    padding: 12px 24px;
+                    border-radius: 4px;
+                    font-family: 'Space Mono', monospace;
+                    font-size: 11px;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    z-index: 9999;
+                    opacity: 0;
+                    transition: opacity 0.3s ease;
+                `;
+                document.body.appendChild(status);
+            }
+            status.textContent = message;
+            status.style.opacity = '1';
+            setTimeout(() => {
+                status.style.opacity = '0';
+            }, 3000);
+        }
+
+        // ==========================================
+        // IMAGE URL FUNCTIONS
+        // ==========================================
+
+        function loadImageFromUrlDirect(frameId, url) {
+            const visual = document.querySelector(`.frame-visual[data-frame-id="${frameId}"]`);
+
+            if (!visual || !url) return;
+
+            // Remove existing image
+            const existingImg = visual.querySelector('.frame-image');
+            if (existingImg) existingImg.remove();
+
+            // Create new image
+            const img = document.createElement('img');
+            img.src = url;
+            img.className = 'frame-image';
+            img.onerror = () => {
+                console.warn('Could not load image:', url);
+                img.remove();
+                const visualContent = visual.querySelector('.visual-content');
+                if (visualContent) visualContent.style.opacity = '1';
+            };
+            img.onload = () => {
+                // Hide placeholder
+                const visualContent = visual.querySelector('.visual-content');
+                if (visualContent) visualContent.style.opacity = '0';
+            };
+            visual.appendChild(img);
+        }
+
+        function clearImage(frameId) {
+            const visual = document.querySelector(`.frame-visual[data-frame-id="${frameId}"]`);
+
+            // Remove from memory
+            delete imageUrls[frameId];
+
+            if (visual) {
+                const img = visual.querySelector('.frame-image');
+                if (img) img.remove();
+
+                const visualContent = visual.querySelector('.visual-content');
+                if (visualContent) visualContent.style.opacity = '1';
+            }
+
+            // Auto-save to URL
+            saveToUrl();
+        }
+
+        // Auto-save comments to URL on change
+        document.querySelectorAll('.cd-comments-textarea').forEach(textarea => {
+            // Save on blur
+            textarea.addEventListener('blur', saveToUrl);
+
+            // Enter key to save (Shift+Enter for new line)
+            textarea.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    textarea.blur(); // Triggers save
+                    showGlobalStatus('Comment saved! (Shift+Enter for new line)');
+                }
+            });
+        });
+
+        // ==========================================
+        // IMGUR AUTO-UPLOAD
+        // ==========================================
+
+        // Imgur Client ID (anonymous uploads, no account needed)
+        const IMGUR_CLIENT_ID = 'c45790ea498a46a';
+
+        async function uploadToImgur(file) {
+            showGlobalStatus('Uploading to Imgur...');
+
+            const formData = new FormData();
+            formData.append('image', file);
+
+            try {
+                const response = await fetch('https://api.imgur.com/3/image', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Client-ID ${IMGUR_CLIENT_ID}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showGlobalStatus('Image uploaded to Imgur!');
+                    return data.data.link;
+                } else {
+                    throw new Error(data.data.error || 'Upload failed');
+                }
+            } catch (error) {
+                console.error('Imgur upload error:', error);
+                showGlobalStatus('Upload failed - try again or use URL');
+                return null;
+            }
+        }
+
+        // Override the drag-drop handler to auto-upload
+        document.querySelectorAll('.frame-visual').forEach(visual => {
+            const frameId = visual.dataset.frameId;
+
+            visual.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                visual.classList.remove('dragover');
+
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    const file = e.dataTransfer.files[0];
+
+                    if (!file.type.startsWith('image/')) {
+                        alert('Please drop an image file');
+                        return;
+                    }
+
+                    // Show loading state
+                    const visualContent = visual.querySelector('.visual-content');
+                    if (visualContent) {
+                        visualContent.innerHTML = '<div class="visual-description">Uploading...</div>';
+                    }
+
+                    // Upload to Imgur
+                    const imgurUrl = await uploadToImgur(file);
+
+                    if (imgurUrl) {
+                        // Store the URL in memory
+                        imageUrls[frameId] = imgurUrl;
+
+                        // Load the image and save to URL
+                        loadImageFromUrlDirect(frameId, imgurUrl);
+                        saveToUrl();
+                    } else {
+                        // Restore placeholder on failure
+                        if (visualContent) {
+                            visualContent.innerHTML = '<div class="visual-description">Upload failed. Try again.</div>';
+                            visualContent.style.opacity = '1';
+                        }
+                    }
+                }
+            });
+        });
+
+        // Load data from URL on page load
+        window.addEventListener('DOMContentLoaded', loadFromUrl);
+
+        // Also try loading immediately in case DOMContentLoaded already fired
+        if (document.readyState !== 'loading') {
+            loadFromUrl();
+        }
+    </script>
+</body>
+</html>
